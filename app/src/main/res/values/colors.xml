@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <string-array name="color_filters">
+        <item>Grayscale</item>
+        <item>Sepia</item>
+        <item>Invert</item>
+        <item>None</item>
+    </string-array>
+
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 </resources>

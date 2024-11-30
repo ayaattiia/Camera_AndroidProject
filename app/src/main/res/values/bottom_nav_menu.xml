@@ -1,0 +1,14 @@
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    <menu
+        android:id="@+id/home"
+        android:icon="@drawable/ic_home"
+        android:title="Home" name="TODO1" />
+    <menu
+        android:id="@+id/search"
+        android:icon="@drawable/ic_camera"
+        android:title="Camera" name="TODO2" />
+    <menu
+        android:id="@+id/profile"
+        android:icon="@drawable/ic_gallery"
+        android:title="Gallery" name="TODO3" />
+</resources>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="16dp">
+
+    <!-- ImageView to display the selected image -->
+    <ImageView
+        android:id="@+id/displayImageView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scaleType="centerCrop" />
+
+    <!-- Button to apply filter -->
+    <Button
+        android:id="@+id/applyFilterButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="16dp"
+        android:text="@string/apply_filter"
+        android:backgroundTint="#9c6644"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:paddingHorizontal="32dp"
+        android:paddingVertical="12dp"
+        android:radius="25dp" />
+
+    <!-- Button to save the image -->
+    <Button
+        android:id="@+id/saveImageButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="16dp"
+        android:text="Save Image"
+        android:backgroundTint="#4CAF50"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:paddingHorizontal="32dp"
+        android:paddingVertical="12dp"
+        android:radius="25dp" />
+</LinearLayout>

@@ -2,7 +2,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-
     <!-- Background Image -->
     <ImageView
         android:id="@+id/backgroundImage"
@@ -11,45 +10,73 @@
         android:src="@drawable/background_image"
         android:scaleType="centerCrop" />
 
-    <!-- Main Content -->
+    <!-- Logo (placed on top of the background image) -->
+    <ImageView
+        android:id="@+id/logoImage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/logo"
+    android:layout_gravity="top"
+    android:layout_marginTop="50dp" />
+
+    <!-- Main Content (Buttons) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:gravity="center"
         android:orientation="vertical"
         android:padding="16dp"
-        android:gravity="center">
+        android:layout_marginTop="150dp">
 
-        <Button
-            android:id="@+id/captureButton"
+        <!-- Capture Image Button -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Capture Image"
-            android:background="@drawable/button_rounded"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="5dp"
+            android:gravity="center"
+            android:orientation="horizontal">
 
+            <!-- Select Image Button -->
+            <Button
+                android:id="@+id/captureButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/button_rounded"
+                android:drawableLeft="@android:drawable/ic_menu_camera"
+                android:drawablePadding="10dp"
+                android:text="Capture Image"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp" />
+
+            <!-- Record Video Button -->
+            <Button
+                android:id="@+id/recordVideoButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="17dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/button_rounded"
+                android:drawableLeft="@android:drawable/ic_media_play"
+                android:drawablePadding="10dp"
+                android:text="Record Video"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Select Image Button -->
         <Button
             android:id="@+id/selectImageButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/button_rounded"
+            android:drawableLeft="@android:drawable/ic_menu_gallery"
+            android:drawablePadding="10dp"
             android:text="Select Image"
-            android:background="@drawable/button_rounded"
             android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:layout_marginBottom="16dp" />
-
-        <Button
-            android:id="@+id/selectImageGallery"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Gallery"
-            android:background="@drawable/button_rounded"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:layout_marginBottom="16dp" />
-
+            android:textSize="16sp" />
     </LinearLayout>
-
 </FrameLayout>

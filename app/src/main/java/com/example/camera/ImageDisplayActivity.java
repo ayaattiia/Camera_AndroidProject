@@ -1,6 +1,5 @@
 package com.example.camera;
 
-import android.Manifest;
 import android.content.ContentValues;
 import android.graphics.Bitmap;
 import android.graphics.ColorMatrix;
@@ -9,27 +8,26 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.view.View;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.ImageView;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AlertDialog;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import android.content.pm.PackageManager;
-import android.util.Log;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
 public class ImageDisplayActivity extends AppCompatActivity {
 
-    private Bitmap selectedBitmap;
-    private Bitmap filteredBitmap; // To store the filtered image
+
+    private Bitmap displayedBitmap; // Holds the original or captured bitmap
+    private Bitmap filteredBitmap; // Holds the filtered image
     private ImageView displayImageView;
     private Button applyFilterButton;
-    private Button saveImageButton;
+    private Button saveImageButton,recordVideoButton;
+    private Uri imageUri; // Holds the URI if the image is from the gallery
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,35 +39,34 @@ public class ImageDisplayActivity extends AppCompatActivity {
         applyFilterButton = findViewById(R.id.applyFilterButton);
         saveImageButton = findViewById(R.id.saveImageButton);
 
-        // Check permissions
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
-        }
 
-        // Set listener for the save button
-        saveImageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (filteredBitmap != null) {
-                    saveToGallery(filteredBitmap);
-                } else {
-                    Log.d("ImageDisplay", "No filter applied, saving original image");
-                    saveToGallery(selectedBitmap); // Save the original if no filter is applied
-                }
+        // Retrieve data from the intent
+        Bitmap capturedBitmap = getIntent().getParcelableExtra("captured_bitmap");
+        String uriString = getIntent().getStringExtra("image_uri");
+
+        if (capturedBitmap != null) {
+            displayedBitmap = capturedBitmap;
+        } else if (uriString != null) {
+            imageUri = Uri.parse(uriString);
+            try {
+                displayedBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
+            } catch (IOException e) {
+                Log.e("ImageDisplayActivity", "Error loading image", e);
+                Toast.makeText(this, "Error loading image", Toast.LENGTH_SHORT).show();
+                return;
             }
-        });
-
-        // Get the bitmap passed from MainActivity
-        selectedBitmap = getIntent().getParcelableExtra("image_data");
-
-        if (selectedBitmap != null) {
-            // Set the image to the ImageView
-            displayImageView.setImageBitmap(selectedBitmap);
         }
 
-        // Set listener for the apply filter button
+        if (displayedBitmap != null) {
+            displayImageView.setImageBitmap(displayedBitmap);
+        } else {
+            Toast.makeText(this, "No image to display", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Set up button actions
         applyFilterButton.setOnClickListener(v -> showFilterDialog());
+        saveImageButton.setOnClickListener(v -> saveImage());
     }
 
     private void showFilterDialog() {
@@ -85,16 +82,11 @@ public class ImageDisplayActivity extends AppCompatActivity {
         builder.create().show();
     }
 
-    // Apply selected filter to the image
-    private void applyColorFilter(String selectedFilter) {
-        if (selectedBitmap == null) {
-            return;
-        }
+    private void applyColorFilter(String filterType) {
+        if (displayedBitmap == null) return;
 
         ColorMatrix colorMatrix = new ColorMatrix();
-        Bitmap newBitmap = selectedBitmap.copy(Bitmap.Config.ARGB_8888, true); // Copy the original bitmap to apply filter
-
-        switch (selectedFilter) {
+        switch (filterType) {
             case "Grayscale":
                 colorMatrix.setSaturation(0);
                 break;
@@ -103,52 +95,50 @@ public class ImageDisplayActivity extends AppCompatActivity {
                 break;
             case "Invert":
                 colorMatrix.set(new float[]{
-                        -1,  0,  0,  0, 255,
-                        0, -1,  0,  0, 255,
-                        0,  0, -1,  0, 255,
-                        0,  0,  0,  1,   0
+                        -1, 0, 0, 0, 255,
+                        0, -1, 0, 0, 255,
+                        0, 0, -1, 0, 255,
+                        0, 0, 0, 1, 0
                 });
                 break;
             default:
-                colorMatrix.setSaturation(1); // No filter
+                colorMatrix.setSaturation(1);
                 break;
         }
 
-        ColorMatrixColorFilter filter = new ColorMatrixColorFilter(colorMatrix);
-        newBitmap = applyColorFilterToBitmap(newBitmap, filter); // Apply the filter to the new bitmap
-        filteredBitmap = newBitmap; // Save the filtered bitmap
-        displayImageView.setImageBitmap(filteredBitmap); // Display the filtered bitmap
+        filteredBitmap = applyColorMatrix(displayedBitmap, colorMatrix);
+        displayImageView.setImageBitmap(filteredBitmap);
     }
 
-    private Bitmap applyColorFilterToBitmap(Bitmap bitmap, ColorMatrixColorFilter filter) {
-        android.graphics.Canvas canvas = new android.graphics.Canvas(bitmap);
+    private Bitmap applyColorMatrix(Bitmap bitmap, ColorMatrix colorMatrix) {
+        Bitmap result = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+        android.graphics.Canvas canvas = new android.graphics.Canvas(result);
         android.graphics.Paint paint = new android.graphics.Paint();
-        paint.setColorFilter(filter);
-        canvas.drawBitmap(bitmap, 0, 0, paint);
-        return bitmap;
+        paint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
+        canvas.drawBitmap(result, 0, 0, paint);
+        return result;
     }
 
-    private void saveToGallery(Bitmap bitmap) {
-        // Create a ContentValues object to insert the image into the MediaStore
-        ContentValues values = new ContentValues();
-        values.put(MediaStore.Images.Media.DISPLAY_NAME, "image_" + System.currentTimeMillis() + ".png");
-        values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
-        values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/Ayouta");
+    private void saveImage() {
+        Bitmap bitmapToSave = (filteredBitmap != null) ? filteredBitmap : displayedBitmap;
+        if (bitmapToSave == null) {
+            Toast.makeText(this, "No image to save", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        // Insert the image into the MediaStore
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.DISPLAY_NAME, "image_" + System.currentTimeMillis() + ".jpg");
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+        values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/AppCamera");
+
         Uri uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
 
-        // Write the bitmap to the content provider
-        try (OutputStream outStream = getContentResolver().openOutputStream(uri)) {
-            if (outStream != null) {
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, outStream);
-                Log.d("ImageDisplay", "Image saved to gallery: " + uri);
-                outStream.flush();
-                Toast.makeText(this, "Image saved to gallery", Toast.LENGTH_SHORT).show();
-
-            }
+        try (OutputStream out = getContentResolver().openOutputStream(uri)) {
+            bitmapToSave.compress(Bitmap.CompressFormat.JPEG, 85, out);
+            Toast.makeText(this, "Image saved to gallery", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e("ImageDisplayActivity", "Error saving image", e);
+            Toast.makeText(this, "Error saving image", Toast.LENGTH_SHORT).show();
         }
     }
 }
